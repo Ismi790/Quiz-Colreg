@@ -1,0 +1,643 @@
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚓ Quiz COLREG & Watchkeeping</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0b2a3e 0%, #1a4b61 50%, #0d3b4f 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #1f6e8c;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #0a2e42;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header .badge {
+            background: #1f6e8c;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-left: 6px solid #1f8cad;
+            transition: all 0.3s ease;
+        }
+
+        .question-card.correct {
+            border-left-color: #1b9e5e;
+            background: #f0fcf6;
+        }
+
+        .question-card.wrong {
+            border-left-color: #c7423e;
+            background: #fff6f5;
+        }
+
+        .question-number {
+            display: inline-block;
+            background: #1f6e8c;
+            color: white;
+            padding: 2px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #0a2e42;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 18px;
+            background: #f5f9fc;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .option:hover:not(.disabled) {
+            background: #e3eef7;
+            border-color: #8bbdd6;
+        }
+
+        .option.selected {
+            background: #d4e8f5;
+            border-color: #1f8cad;
+        }
+
+        .option.correct-answer {
+            background: #b8e6cf;
+            border-color: #0f7947;
+        }
+
+        .option.wrong-answer {
+            background: #fad6d4;
+            border-color: #b13b37;
+        }
+
+        .option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #1a6d8a;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .option input[type="radio"]:disabled {
+            cursor: not-allowed;
+        }
+
+        .option-text {
+            font-weight: 500;
+            color: #103f55;
+        }
+
+        .explanation {
+            margin-top: 15px;
+            padding: 15px 20px;
+            background: #eef6fb;
+            border-radius: 12px;
+            border-left: 5px solid #2a7f9e;
+            display: none;
+            line-height: 1.6;
+            color: #023047;
+        }
+
+        .explanation.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .explanation .label {
+            font-weight: 700;
+            color: #005073;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .explanation .result {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-right: 10px;
+        }
+
+        .result.correct {
+            background: #1b9e5e;
+            color: white;
+        }
+
+        .result.wrong {
+            background: #c7423e;
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px dashed #b6d3e3;
+        }
+
+        .score-box {
+            background: #113b4e;
+            padding: 10px 30px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .score-box span {
+            background: #f5c542;
+            color: #0b2a3e;
+            padding: 0 20px;
+            border-radius: 30px;
+            line-height: 40px;
+            font-size: 1.8rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #1b6f8f;
+            color: white;
+            box-shadow: 0 4px 15px rgba(10, 70, 90, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #0f5a77;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(10, 70, 90, 0.4);
+        }
+
+        .btn-success {
+            background: #1d8b53;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #127543;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #4d7f99;
+            color: #1f5d78;
+        }
+
+        .btn-outline:hover {
+            background: #d7e9f5;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .info-text {
+            text-align: center;
+            margin-top: 15px;
+            color: #2b627c;
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 8px 15px;
+            border-radius: 50px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .question-text {
+                font-size: 1rem;
+            }
+
+            .footer {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .score-box {
+                justify-content: center;
+            }
+
+            .buttons {
+                justify-content: center;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <div class="header">
+            <h1>⚓ COLREG & Watchkeeping</h1>
+            <span class="badge">📝 10 Soal</span>
+        </div>
+
+        <div id="questionsContainer"></div>
+
+        <div class="footer">
+            <div class="score-box">
+                🏆 Skor
+                <span id="scoreDisplay">0</span>
+            </div>
+            <div class="buttons">
+                <button class="btn btn-outline" id="resetBtn">⟲ Reset</button>
+                <button class="btn btn-primary" id="submitBtn">✅ Periksa Jawaban</button>
+            </div>
+        </div>
+        <div class="info-text">
+            💡 Pilih jawaban, lalu klik "Periksa Jawaban" untuk melihat hasil dan penjelasan
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // DATA SOAL
+        // ============================================================
+        const quizData = [{
+            question: "Kapal mana yang memiliki hak jalan (stand-on vessel) ketika dua kapal bertenaga mesin bertemu saling berlawanan arah?",
+            options: [
+                "Kapal yang berada di sisi kanan (starboard)",
+                "Kapal yang berada di sisi kiri (port)",
+                "Kedua kapal harus berubah haluan ke kanan",
+                "Kapal dengan kecepatan lebih tinggi"
+            ],
+            answer: 0,
+            explanation: "Menurut COLREG Aturan 14 (head-on situation), kedua kapal harus mengubah haluan ke kanan. Namun kapal yang melihat kapal lain di sisi kirinya (port) adalah give-way vessel, dan kapal yang melihat kapal lain di sisi kanan (starboard) adalah stand-on vessel. Jadi jawaban yang tepat adalah kapal yang berada di sisi kanan (starboard)."
+        }, {
+            question: "Dalam situasi crossing, kapal mana yang harus mendahului (give-way) jika kapal lain terlihat di sisi kanan?",
+            options: [
+                "Kapal yang melihat kapal lain di sisi kanannya (starboard)",
+                "Kapal yang melihat kapal lain di sisi kirinya (port)",
+                "Kapal yang lebih kecil",
+                "Kapal yang lebih lambat"
+            ],
+            answer: 0,
+            explanation: "Aturan 15 (crossing situation): kapal yang memiliki kapal lain di sisi kanannya (starboard) harus mendahului (give-way), dan menghindari di depan kapal tersebut. Jadi kapal dengan kapal lain di starboard-nya adalah give-way vessel."
+        }, {
+            question: "Apa yang dimaksud dengan 'stand-on vessel' dalam COLREG?",
+            options: [
+                "Kapal yang harus mempertahankan haluan dan kecepatannya",
+                "Kapal yang harus segera melakukan tindakan menghindar",
+                "Kapal yang memiliki hak untuk didahului",
+                "Kapal yang berada di pelabuhan"
+            ],
+            answer: 0,
+            explanation: "'Stand-on vessel' adalah kapal yang wajib mempertahankan haluan dan kecepatannya (hold course and speed) dalam situasi tertentu, sementara kapal lain (give-way) yang harus melakukan tindakan menghindar."
+        }, {
+            question: "Kapan jam jaga (watchkeeping) di atas kapal harus dilakukan sesuai STCW?",
+            options: [
+                "Hanya saat kapal berlayar di laut lepas",
+                "24 jam sehari, baik di laut maupun di pelabuhan",
+                "Hanya saat malam hari",
+                "Saat cuaca buruk saja"
+            ],
+            answer: 1,
+            explanation: "Prinsip watchkeeping (STCW) mewajibkan pengawasan terus menerus 24 jam sehari, baik saat kapal berlayar, di perairan sempit, maupun saat berlabuh di pelabuhan (sesuai ketentuan)."
+        }, {
+            question: "Pada malam hari, kapal yang sedang berlayar wajib memperlihatkan lampu apa?",
+            options: [
+                "Lampu putih di tiang depan dan lampu hijau-merah di sisi",
+                "Lampu merah di kanan dan hijau di kiri",
+                "Lampu putih di buritan dan lampu kuning di haluan",
+                "Lampu hijau di kanan, merah di kiri, dan lampu putih di tiang & buritan"
+            ],
+            answer: 3,
+            explanation: "Aturan pencahayaan (Rule 21-23): kapal bertenaga mesin yang sedang berlayar harus menampilkan lampu tiang (putih), lampu sisi (hijau di kanan, merah di kiri), dan lampu buritan (putih)."
+        }, {
+            question: "Dalam kabut atau jarak pandang terbatas, isyarat bunyi apa yang harus diberikan kapal bertenaga mesin yang sedang berlayar?",
+            options: [
+                "Satu tiupan panjang setiap 2 menit",
+                "Satu tiupan panjang dan dua tiupan pendek setiap 2 menit",
+                "Satu tiupan panjang setiap 1 menit",
+                "Dua tiupan panjang setiap 2 menit"
+            ],
+            answer: 0,
+            explanation: "Aturan 35 (signal in restricted visibility): kapal bertenaga mesin yang berlayar harus membunyikan satu tiupan panjang setiap 2 menit. Kapal yang tidak dapat bergerak membunyikan dua tiupan panjang dan satu pendek, dsb."
+        }, {
+            question: "Apa yang harus dilakukan oleh officer of the watch (OOW) jika melihat kapal lain mendekat dan terjadi risiko tabrakan?",
+            options: [
+                "Segera membangunkan nakhoda",
+                "Melakukan tindakan menghindar yang tegas dan tepat waktu",
+                "Mengurangi kecepatan secara drastis",
+                "Mengubah haluan ke kiri tanpa pemberitahuan"
+            ],
+            answer: 1,
+            explanation: "OOW wajib mengambil tindakan menghindar yang tegas, tepat waktu, dan sesuai COLREG. Tindakan harus jelas dan dapat diamati oleh kapal lain."
+        }, {
+            question: "Manakah pernyataan yang benar mengenai 'duty officer' di jaga malam?",
+            options: [
+                "Dilarang meninggalkan anjungan meskipun sebentar",
+                "Harus selalu berada di anjungan dan waspada",
+                "Boleh tidur siang agar tetap segar",
+                "Hanya bertugas jika nakhoda memerintahkan"
+            ],
+            answer: 1,
+            explanation: "Perwira jaga (OOW) harus selalu berada di anjungan dan menjaga kewaspadaan penuh selama jam jaga, sesuai STCW dan perusahaan pelayaran."
+        }, {
+            question: "Jika terjadi tabrakan yang tidak dapat dihindari, tindakan pertama yang harus dilakukan oleh perwira jaga adalah...",
+            options: [
+                "Mencatat semua kejadian di logbook",
+                "Menghentikan mesin dan membunyikan alarm darurat",
+                "Menghubungi nakhoda dan memulai prosedur darurat",
+                "Mengamankan dokumen kapal"
+            ],
+            answer: 2,
+            explanation: "Langkah awal adalah segera menghubungi nakhoda, mengaktifkan alarm darurat, dan menjalankan prosedur darurat sesuai SOP kapal."
+        }, {
+            question: "Berdasarkan COLREG, kapal yang sedang memancing (fishing vessel) memiliki hak jalan terhadap kapal apa?",
+            options: [
+                "Kapal layar (sailing vessel)",
+                "Kapal bertenaga mesin yang sedang berlayar",
+                "Kapal yang tidak dapat bergerak (NUC)",
+                "Tidak memiliki hak jalan terhadap kapal manapun jika sedang memancing"
+            ],
+            answer: 1,
+            explanation: "Menurut Aturan 18 (Responsibilities between vessels): kapal memancing (fishing) harus menjaga jarak dari kapal yang tidak dapat bergerak (NUC) atau kapal yang terbatas kemampuannya, tetapi memiliki hak jalan terhadap kapal bertenaga mesin yang sedang berlayar (kecuali NUC)."
+        }];
+
+        // ============================================================
+        // STATE
+        // ============================================================
+        let userAnswers = new Array(quizData.length).fill(null);
+        let isSubmitted = false;
+
+        // ============================================================
+        // DOM ELEMENTS
+        // ============================================================
+        const container = document.getElementById('questionsContainer');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const submitBtn = document.getElementById('submitBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // ============================================================
+        // RENDER FUNCTION
+        // ============================================================
+        function render() {
+            let html = '';
+
+            quizData.forEach((item, index) => {
+                const selected = userAnswers[index];
+                const isCorrect = (selected !== null && selected === item.answer);
+                let cardClass = 'question-card';
+
+                if (isSubmitted && selected !== null) {
+                    cardClass += isCorrect ? ' correct' : ' wrong';
+                }
+
+                html += `<div class="${cardClass}">`;
+                html += `<div class="question-text">`;
+                html += `<span class="question-number">Soal ${index + 1}</span>`;
+                html += item.question;
+                html += `</div>`;
+
+                html += `<div class="options">`;
+
+                item.options.forEach((opt, optIdx) => {
+                    let optionClass = 'option';
+                    let isSelected = (selected === optIdx);
+                    let isCorrectAnswer = (optIdx === item.answer);
+                    let isWrongSelected = (isSelected && !isCorrectAnswer);
+
+                    if (isSubmitted) {
+                        if (isCorrectAnswer) {
+                            optionClass += ' correct-answer';
+                        }
+                        if (isWrongSelected) {
+                            optionClass += ' wrong-answer';
+                        }
+                        if (isSelected) {
+                            optionClass += ' selected';
+                        }
+                        // disable all radio when submitted
+                    } else {
+                        if (isSelected) {
+                            optionClass += ' selected';
+                        }
+                    }
+
+                    const disabled = isSubmitted ? 'disabled' : '';
+                    const checked = isSelected ? 'checked' : '';
+
+                    html += `<label class="${optionClass}">`;
+                    html += `<input type="radio" name="q${index}" value="${optIdx}" ${checked} ${disabled} data-q="${index}" data-opt="${optIdx}">`;
+                    html += `<span class="option-text">${String.fromCharCode(65 + optIdx)}. ${opt}</span>`;
+                    html += `</label>`;
+                });
+
+                html += `</div>`;
+
+                // Explanation
+                let explClass = 'explanation';
+                if (isSubmitted && selected !== null) {
+                    explClass += ' show';
+                }
+
+                html += `<div class="${explClass}">`;
+                html += `<span class="label">📘 Penjelasan</span>`;
+
+                if (isSubmitted && selected !== null) {
+                    const resultClass = isCorrect ? 'correct' : 'wrong';
+                    const resultText = isCorrect ? '✅ Benar' : '❌ Salah';
+                    html += `<span class="result ${resultClass}">${resultText}</span>`;
+                }
+
+                html += item.explanation;
+                html += `</div>`;
+
+                html += `</div>`;
+            });
+
+            container.innerHTML = html;
+
+            // Update score
+            if (isSubmitted) {
+                let correct = 0;
+                for (let i = 0; i < quizData.length; i++) {
+                    if (userAnswers[i] !== null && userAnswers[i] === quizData[i].answer) {
+                        correct++;
+                    }
+                }
+                scoreDisplay.textContent = correct;
+            } else {
+                scoreDisplay.textContent = '0';
+            }
+
+            // Attach event listeners to radio buttons (only if not submitted)
+            if (!isSubmitted) {
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.addEventListener('change', function(e) {
+                        const qIdx = parseInt(this.dataset.q);
+                        const optVal = parseInt(this.dataset.opt);
+                        userAnswers[qIdx] = optVal;
+
+                        // Update visual selection
+                        const parentCard = this.closest('.question-card');
+                        const labels = parentCard.querySelectorAll('.option');
+                        labels.forEach((label, idx) => {
+                            label.classList.remove('selected');
+                            const radio = label.querySelector('input[type="radio"]');
+                            if (radio && radio.checked) {
+                                label.classList.add('selected');
+                            }
+                        });
+                    });
+                });
+            }
+        }
+
+        // ============================================================
+        // EVENT HANDLERS
+        // ============================================================
+        function handleSubmit() {
+            const allAnswered = userAnswers.every(val => val !== null);
+            if (!allAnswered) {
+                if (!confirm('⚠️ Ada pertanyaan yang belum dijawab. Tetap periksa?')) {
+                    return;
+                }
+            }
+
+            isSubmitted = true;
+            render();
+            submitBtn.disabled = true;
+        }
+
+        function handleReset() {
+            if (isSubmitted) {
+                if (!confirm('Reset semua jawaban dan mulai ulang?')) {
+                    return;
+                }
+            }
+            userAnswers = new Array(quizData.length).fill(null);
+            isSubmitted = false;
+            submitBtn.disabled = false;
+            render();
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        render();
+        submitBtn.addEventListener('click', handleSubmit);
+        resetBtn.addEventListener('click', handleReset);
+    </script>
+</body>
+</html>
+```
